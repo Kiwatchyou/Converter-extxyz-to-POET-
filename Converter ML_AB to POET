@@ -1,0 +1,30 @@
+!pip install git+https://github.com/utf/pymlff.git
+!pip install ase
+from pymlff import MLAB
+from ase.io import read,write
+from ase.units import bar
+
+way = "your_way"
+
+ab = MLAB.from_file(f'{way}FILE_NAME.txt')
+ab.write_extxyz(f'{way}FILE_NAME.xyz', 'kbar')
+atoms=read(f'{way}FILE_NAME.xyz',index=":")
+# new_ab = ab.filter_configurations(lambda i, config: config.num_atoms >= 256)
+for i in range(len(atoms)):
+  write(way + str(i+1)+'.vasp',atoms[i],format='vasp')
+with open(f'{way}F_coord.data', 'w') as f:
+  for i in range(len(atoms)):
+    for j in range(0,len(atoms[i])):
+        str_pos = [str(line) for line in atoms[i].positions[j]]
+        str_forces =  [str(line) for line in atoms[i].get_forces()[j]]
+        f.write(" ".join(str_pos)+" "+" ".join(str_forces)+"\n")
+
+with open(f'{way}E0.data', 'w') as f:
+  for i in range(len(atoms)):
+    f.write(str(atoms[i].get_potential_energy())+ '\n')
+
+with open(f'{way}F_Cell.data', 'w') as f:
+  for i in range(len(atoms)):
+   # x= -1 * atoms[i].get_stress() / bar / 1000
+    x= atoms[i].get_stress()
+    f.write(str(x[0])+" "+str(x[1])+" "+str(x[2])+" "+str(x[5])+" "+str(x[3])+" "+str(x[4]) + '\n')
